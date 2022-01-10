@@ -10,17 +10,15 @@ import subprocess
 if sys.version_info < (3, 6):
     ModuleNotFoundError = SystemError
 
-try:
-    from .util import load_dict
-    from . import shuffle
-except (ModuleNotFoundError, ImportError) as e:
-    from util import load_dict
-    import shuffle
+from util import load_dict
+from nematus.data import shuffle
+
 
 def fopen(filename, mode='r'):
     if filename.endswith('.gz'):
         return gzip.open(filename, mode, encoding="UTF-8")
     return open(filename, mode, encoding="UTF-8")
+
 
 class FileWrapper(object):
     def __init__(self, fname):
@@ -133,7 +131,7 @@ class TextIterator:
         self.source_buffer = []
         self.target_buffer = []
         self.k = batch_size * maxibatch_size
-        
+
 
         self.end_of_data = False
 
@@ -182,7 +180,7 @@ class TextIterator:
             for ss in self.source:
                 ss = ss.split()
                 tt = self.target.readline().split()
-                
+
                 if self.skip_empty and (len(ss) == 0 or len(tt) == 0):
                     continue
                 if len(ss) > self.maxlen or len(tt) > self.maxlen:
@@ -243,7 +241,7 @@ class TextIterator:
                                            self.target_unk_val) for w in tt]
                 if self.target_vocab_size != None:
                     tt_indices = [w if w < self.target_vocab_size
-                                    else self.target_unk_val
+                                  else self.target_unk_val
                                   for w in tt_indices]
 
                 source.append(ss_indices)
@@ -253,7 +251,7 @@ class TextIterator:
 
                 if self.token_batch_size:
                     if len(source)*longest_source > self.token_batch_size or \
-                        len(target)*longest_target > self.token_batch_size:
+                            len(target)*longest_target > self.token_batch_size:
                         # remove last sentence pair (that made batch over-long)
                         source.pop()
                         target.pop()
@@ -264,7 +262,7 @@ class TextIterator:
 
                 else:
                     if len(source) >= self.batch_size or \
-                        len(target) >= self.batch_size:
+                            len(target) >= self.batch_size:
                         break
         except IOError:
             self.end_of_data = True

@@ -19,79 +19,58 @@ logging.basicConfig(level=level, format='%(levelname)s: %(message)s')
 
 import numpy
 import tensorflow as tf
-
-# ModuleNotFoundError is new in 3.6; older versions will throw SystemError
-if sys.version_info < (3, 6):
-    ModuleNotFoundError = SystemError
-
-try:
-    from .beam_search_sampler import BeamSearchSampler
-    from .config import read_config_from_cmdline, write_config_to_json_file
-    from .data_iterator import TextIterator
-    from .exponential_smoothing import ExponentialSmoothing
-    from . import learning_schedule
-    from . import model_loader
-    from .model_updater import ModelUpdater
-    from .random_sampler import RandomSampler
-    from . import rnn_model
-    from . import tf_utils
-    from .transformer import Transformer as TransformerModel
-    from . import translate_utils
-    from . import util
-except (ModuleNotFoundError, ImportError) as e:
-    from beam_search_sampler import BeamSearchSampler
-    from config import read_config_from_cmdline, write_config_to_json_file
-    from data_iterator import TextIterator
-    from exponential_smoothing import ExponentialSmoothing
-    import learning_schedule
-    import model_loader
-    from model_updater import ModelUpdater
-    from random_sampler import RandomSampler
-    import rnn_model
-    import tf_utils
-    from transformer import Transformer as TransformerModel
-    import translate_utils
-    import util
-
+from beam_search_sampler import BeamSearchSampler
+from config import read_config_from_cmdline, write_config_to_json_file
+from data_iterator import TextIterator
+from exponential_smoothing import ExponentialSmoothing
+import learning_schedule
+import model_loader
+from model_updater import ModelUpdater
+from random_sampler import RandomSampler
+import rnn_model
+import tf_utils
+from transformer import Transformer as TransformerModel
+import translate_utils
+import util
 
 
 def load_data(config):
     logging.info('Reading data...')
     text_iterator = TextIterator(
-                        source=config.source_dataset,
-                        target=config.target_dataset,
-                        source_dicts=config.source_dicts,
-                        target_dict=config.target_dict,
-                        model_type=config.model_type,
-                        batch_size=config.batch_size,
-                        maxlen=config.maxlen,
-                        source_vocab_sizes=config.source_vocab_sizes,
-                        target_vocab_size=config.target_vocab_size,
-                        skip_empty=True,
-                        shuffle_each_epoch=config.shuffle_each_epoch,
-                        sort_by_length=config.sort_by_length,
-                        use_factor=(config.factors > 1),
-                        maxibatch_size=config.maxibatch_size,
-                        token_batch_size=config.token_batch_size,
-                        keep_data_in_memory=config.keep_train_set_in_memory,
-                        preprocess_script=config.preprocess_script)
+        source=config.source_dataset,
+        target=config.target_dataset,
+        source_dicts=config.source_dicts,
+        target_dict=config.target_dict,
+        model_type=config.model_type,
+        batch_size=config.batch_size,
+        maxlen=config.maxlen,
+        source_vocab_sizes=config.source_vocab_sizes,
+        target_vocab_size=config.target_vocab_size,
+        skip_empty=True,
+        shuffle_each_epoch=config.shuffle_each_epoch,
+        sort_by_length=config.sort_by_length,
+        use_factor=(config.factors > 1),
+        maxibatch_size=config.maxibatch_size,
+        token_batch_size=config.token_batch_size,
+        keep_data_in_memory=config.keep_train_set_in_memory,
+        preprocess_script=config.preprocess_script)
 
     if config.valid_freq and config.valid_source_dataset and config.valid_target_dataset:
         valid_text_iterator = TextIterator(
-                            source=config.valid_source_dataset,
-                            target=config.valid_target_dataset,
-                            source_dicts=config.source_dicts,
-                            target_dict=config.target_dict,
-                            model_type=config.model_type,
-                            batch_size=config.valid_batch_size,
-                            maxlen=config.maxlen,
-                            source_vocab_sizes=config.source_vocab_sizes,
-                            target_vocab_size=config.target_vocab_size,
-                            shuffle_each_epoch=False,
-                            sort_by_length=True,
-                            use_factor=(config.factors > 1),
-                            maxibatch_size=config.maxibatch_size,
-                            token_batch_size=config.valid_token_batch_size)
+            source=config.valid_source_dataset,
+            target=config.valid_target_dataset,
+            source_dicts=config.source_dicts,
+            target_dict=config.target_dict,
+            model_type=config.model_type,
+            batch_size=config.valid_batch_size,
+            maxlen=config.maxlen,
+            source_vocab_sizes=config.source_vocab_sizes,
+            target_vocab_size=config.target_vocab_size,
+            shuffle_each_epoch=False,
+            sort_by_length=True,
+            use_factor=(config.factors > 1),
+            maxibatch_size=config.maxibatch_size,
+            token_batch_size=config.valid_token_batch_size)
     else:
         logging.info('no validation set loaded')
         valid_text_iterator = None
@@ -101,7 +80,7 @@ def load_data(config):
 
 def train(config, sess):
     assert (config.prior_model != None and (tf.compat.v1.train.checkpoint_exists(os.path.abspath(config.prior_model))) or (config.map_decay_c==0.0)), \
-    "MAP training requires a prior model file: Use command-line option --prior_model"
+        "MAP training requires a prior model file: Use command-line option --prior_model"
 
     # Construct the graph, with one model replica per GPU
 
@@ -117,7 +96,7 @@ def train(config, sess):
         else:
             assert num_replicas == 1, "MRT mode does not support sentence-based split"
             assert (config.samplesN * config.maxlen <= config.token_batch_size), "need to make sure candidates of a sentence could be " \
-                                                                                      "feed into the model"
+                                                                                 "feed into the model"
 
 
 
@@ -157,9 +136,9 @@ def train(config, sess):
 
     if config.optimizer == 'adam':
         optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=schedule.learning_rate,
-                                           beta1=config.adam_beta1,
-                                           beta2=config.adam_beta2,
-                                           epsilon=config.adam_epsilon)
+                                                     beta1=config.adam_beta1,
+                                                     beta2=config.adam_beta2,
+                                                     epsilon=config.adam_epsilon)
     else:
         logging.error('No valid optimizer defined: {}'.format(config.optimizer))
         sys.exit(1)
@@ -300,7 +279,7 @@ def train(config, sess):
                     valid_ce = validate(sess, replicas[0], config,
                                         valid_text_iterator)
                 if (len(progress.history_errs) == 0 or
-                    valid_ce < min(progress.history_errs)):
+                        valid_ce < min(progress.history_errs)):
                     progress.history_errs.append(valid_ce)
                     progress.bad_counter = 0
                     save_non_checkpoint(sess, saver, config.saveto)
@@ -321,8 +300,8 @@ def train(config, sess):
                     else:
                         score = validate_with_script(sess, beam_search_sampler)
                     need_to_save = (score is not None and
-                        (len(progress.valid_script_scores) == 0 or
-                         score > max(progress.valid_script_scores)))
+                                    (len(progress.valid_script_scores) == 0 or
+                                     score > max(progress.valid_script_scores)))
                     if score is None:
                         score = 0.0  # ensure a valid value is written
                     progress.valid_script_scores.append(score)
@@ -477,7 +456,7 @@ def calc_cross_entropy_per_sentence(session, model, config, text_iterator,
         if len(xx[0][0]) != config.factors:
             logging.error('Mismatch between number of factors in settings ' \
                           '({0}) and number present in data ({1})'.format(
-                          config.factors, len(xx[0][0])))
+                config.factors, len(xx[0][0])))
             sys.exit(1)
         x, x_mask, y, y_mask = util.prepare_data(xx, yy, config.factors,
                                                  maxlen=None)
