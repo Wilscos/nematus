@@ -11,7 +11,7 @@ if sys.version_info < (3, 6):
     ModuleNotFoundError = SystemError
 
 from util import load_dict
-from nematus.data import shuffle
+from ..data import shuffle
 
 
 def fopen(filename, mode='r'):
